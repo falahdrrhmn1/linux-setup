@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Clipboard Manager
+Comment=Keep clipboard history
+Exec=xfce4-clipman
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

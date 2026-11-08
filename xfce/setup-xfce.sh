@@ -51,6 +51,33 @@ if command -v xinput >/dev/null 2>&1; then
     fi
 fi
 
+echo "-- terminal: copy-on-select + clipboard manager"
+if ! command -v xfce4-clipman >/dev/null 2>&1; then
+    sudo apt-get update -qq
+    sudo apt-get install -y xfce4-clipman xclip
+fi
+
+rc="$HOME/.config/xfce4/terminal/terminalrc"
+mkdir -p "$(dirname "$rc")"
+touch "$rc"
+if grep -q '^MiscCopyOnSelect=' "$rc"; then
+    sed -i 's/^MiscCopyOnSelect=.*/MiscCopyOnSelect=TRUE/' "$rc"
+elif grep -q '^\[Configuration\]' "$rc"; then
+    sed -i '/^\[Configuration\]/a MiscCopyOnSelect=TRUE' "$rc"
+else
+    printf '[Configuration]\nMiscCopyOnSelect=TRUE\n' >> "$rc"
+fi
+
+if [ -f "$DIR/clipman.desktop" ]; then
+    mkdir -p "$HOME/.config/autostart"
+    cp "$DIR/clipman.desktop" "$HOME/.config/autostart/clipman.desktop"
+fi
+if command -v xfce4-clipman >/dev/null 2>&1; then
+    if ! pgrep -x xfce4-clipman >/dev/null 2>&1; then
+        setsid xfce4-clipman </dev/null >/dev/null 2>&1 &
+    fi
+fi
+
 echo "-- fn lock: F2/F3 langsung menjadi tombol volume"
 if [ -f "$DIR/../system/fnlock.service" ]; then
     sudo cp "$DIR/../system/fnlock.service" /etc/systemd/system/fnlock.service

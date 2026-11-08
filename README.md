@@ -22,6 +22,15 @@ Diuji di Lenovo IdeaPad 82HS, Debian 13 (trixie), XFCE 4.20, touchpad multitouch
 | Pindah workspace | 4 jari ke kiri = berikutnya, ke kanan = sebelumnya |
 | Cari aplikasi | Tap tombol **Super/Windows**, ketik nama, `Enter` |
 | Tombol volume | `F2`/`F3`/`Mute` langsung mengatur volume (Fn lock dimatikan) |
+| Copy/paste terminal | **Shift+drag** untuk menyeleksi, `Ctrl`+`Shift`+`C` copy, `Ctrl`+`Shift`+`V` paste |
+
+## Copy/paste di terminal
+
+- Aplikasi TUI seperti opencode menangkap mouse. Tahan **Shift** saat drag untuk
+  menyeleksi teks.
+- Copy: `Ctrl`+`Shift`+`C` (bukan `Ctrl`+`C`). Paste: `Ctrl`+`Shift`+`V` atau klik tengah.
+- `xfce4-clipman` otomatis jalan supaya clipboard tersimpan walau terminal ditutup.
+- Terminal baru: seleksi langsung otomatis copy (`MiscCopyOnSelect=TRUE`).
 
 ## Syarat
 
