@@ -1,0 +1,6 @@
+#!/bin/sh
+# Tap Super to open the application search, like the Windows Start menu.
+# Super+<key> combinations keep working because xcape only fires on a tap.
+command -v xcape >/dev/null 2>&1 || exit 0
+pkill -x xcape 2>/dev/null || true
+exec xcape -e 'Super_L=XF86Search;Super_R=XF86Search'

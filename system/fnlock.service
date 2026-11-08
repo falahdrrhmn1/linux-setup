@@ -1,0 +1,11 @@
+[Unit]
+Description=Set IdeaPad Fn lock to special function keys
+Documentation=https://github.com/falahdrrhmn1/linux-setup
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for f in /sys/bus/platform/drivers/ideapad_acpi/*/fn_lock; do [ -e "$f" ] && echo 0 > "$f"; done'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Super search
+Comment=Tap Super to search and open applications
+Exec=@HOME@/.local/bin/super-search
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
