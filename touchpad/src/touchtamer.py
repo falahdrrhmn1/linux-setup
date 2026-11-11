@@ -486,6 +486,11 @@ class WindowMover:
         gravity = 1  # NorthWest
         present = 0x03 if w is None or h is None else 0x0F
         flags = gravity | (present << 8) | (2 << 12)  # source = pager
+        if w is not None and h is not None:
+            # frame size -> client size (see WindowSizer._move_resize)
+            left, right, top, bottom = self._frame_extents(window)
+            w = max(1, w - left - right)
+            h = max(1, h - top - bottom)
         self._send_client_message(
             window,
             self.atom_moveresize,
@@ -653,6 +658,11 @@ class WindowSizer:
         self.dpy.flush()
 
     def _move_resize(self, window, x, y, w, h):
+        # w/h are FRAME sizes here; _NET_MOVERESIZE_WINDOW wants the client
+        # size, otherwise the title bar and border pile up on every call.
+        left, right, top, bottom = self._frame_extents(window)
+        w = max(1, int(w) - left - right)
+        h = max(1, int(h) - top - bottom)
         flags = 1 | (0x0F << 8) | (2 << 12)
         self._send(window, self.atom_moveresize, [flags, x, y, w, h])
 
