@@ -26,6 +26,13 @@ echo "-- mematikan zoom desktop XFCE"
 set_bool /general/zoom_desktop false
 set_bool /general/zoom_pointer false
 
+echo "-- xfwm4: vblank glx (scroll lebih responsif)"
+if xfconf-query -c xfwm4 -p /general/vblank_mode >/dev/null 2>&1; then
+    xfconf-query -c xfwm4 -p /general/vblank_mode -s glx
+else
+    xfconf-query -c xfwm4 -p /general/vblank_mode -n -t string -s glx
+fi
+
 echo "-- memasang hotkey volume"
 set_str /commands/custom/XF86AudioRaiseVolume "pactl set-sink-volume @DEFAULT_SINK@ +5%"
 set_str /commands/custom/XF86AudioLowerVolume "pactl set-sink-volume @DEFAULT_SINK@ -5%"
@@ -33,7 +40,9 @@ set_str /commands/custom/XF86AudioMute "pactl set-sink-mute @DEFAULT_SINK@ toggl
 set_str /commands/custom/XF86AudioMicMute "pactl set-source-mute @DEFAULT_SOURCE@ toggle"
 
 echo "-- touchpad: tap-to-click + natural scrolling"
-if [ ! -f /etc/X11/xorg.conf.d/40-libinput-touchpad.conf ]; then
+if ! cmp -s "$DIR/40-libinput-touchpad.conf" \
+        /etc/X11/xorg.conf.d/40-libinput-touchpad.conf 2>/dev/null; then
+    sudo mkdir -p /etc/X11/xorg.conf.d
     sudo cp "$DIR/40-libinput-touchpad.conf" \
         /etc/X11/xorg.conf.d/40-libinput-touchpad.conf
 fi
@@ -48,6 +57,8 @@ if command -v xinput >/dev/null 2>&1; then
         xinput set-prop "$tp_id" "libinput Tapping Enabled" 1 2>/dev/null || true
         xinput set-prop "$tp_id" \
             "libinput Natural Scrolling Enabled" 1 2>/dev/null || true
+        xinput set-prop "$tp_id" \
+            "libinput Scrolling Pixel Distance" 36 2>/dev/null || true
     fi
 fi
 

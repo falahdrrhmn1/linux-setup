@@ -572,17 +572,21 @@ class WindowMover:
     def move(self, dx, dy):
         if self.win is None:
             return
-        self.want_x += dx
-        self.want_y += dy
+        # Batas simetris di keempat sisi: sisa KEEP_X / KEEP_Y piksel jendela
+        # tetap terlihat. Posisi di-clamp langsung, jadi tidak ada jarak mati
+        # saat berbalik arah setelah mentok.
+        wx, wy, ww, wh = self._work_area()
+        keep_x, keep_y = 120, 40
+        min_x = wx + keep_x - self.frame_w
+        max_x = wx + ww - keep_x
+        min_y = wy + keep_y - self.frame_h
+        max_y = wy + wh - keep_y
+        fx = max(min_x, min(self.want_x + dx, max_x))
+        fy = max(min_y, min(self.want_y + dy, max_y))
+        dx, dy = fx - self.want_x, fy - self.want_y
+        self.want_x, self.want_y = fx, fy
         self.want_cx += dx
         self.want_cy += dy
-
-        wx, wy, ww, wh = self._work_area()
-        keep = 120
-        max_x = wx + ww - keep
-        max_y = wy + wh - 40
-        fx = max(wx, min(self.want_x, max_x))
-        fy = max(wy, min(self.want_y, max_y))
 
         self._move_resize(self.win, fx, fy)
 
