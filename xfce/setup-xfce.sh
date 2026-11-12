@@ -95,3 +95,13 @@ if [ -f "$DIR/../system/fnlock.service" ]; then
     sudo systemctl daemon-reload
     sudo systemctl enable --now fnlock.service
 fi
+
+echo "-- screenshot: Ctrl+Shift+S / PrtSc = pilih area, langsung ke clipboard"
+if command -v xfce4-screenshooter >/dev/null 2>&1 && command -v xfconf-query >/dev/null 2>&1; then
+    for key in '<Primary><Shift>s' 'Print'; do
+        xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$key" \
+            -n -t string -s "xfce4-screenshooter -r -c" 2>/dev/null \
+        || xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$key" \
+            -s "xfce4-screenshooter -r -c"
+    done
+fi
