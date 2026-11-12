@@ -11,6 +11,7 @@ import os
 import signal
 import subprocess
 import sys
+import time
 
 import gi
 
@@ -36,7 +37,7 @@ def log(msg):
         if os.path.exists(LOGF) and os.path.getsize(LOGF) > 50000:
             os.remove(LOGF)
         with open(LOGF, "a") as f:
-            f.write(msg + "\n")
+            f.write(f"{time.monotonic() % 1000:.3f} {msg}\n")
     except OSError:
         pass
 
@@ -81,6 +82,7 @@ st = {"focused": False, "busy": False, "seen": False}
 
 
 def quit_now(*_):
+    log("quit")
     Gtk.main_quit()
 
 
@@ -100,6 +102,7 @@ def watch_chooser():
 
 def open_chooser():
     st["seen"] = False
+    log("open_chooser")
     entry.set_text("")
     entry.grab_focus()
     entry.emit("insert-emoji")
@@ -110,7 +113,7 @@ def paste_done():
     # Kembalikan fokus ke pemilih untuk emoji berikutnya.
     win.present()
     sh("xdotool", "windowactivate", str(win.get_window().get_xid()))
-    GLib.timeout_add(200, lambda: (st.update(busy=False), open_chooser(), False)[2])
+    GLib.timeout_add(40, lambda: (st.update(busy=False), open_when_active(), False)[2])
     return False
 
 
@@ -132,21 +135,21 @@ def pick(text):
 
     def do_paste():
         now = sh("xdotool", "getactivewindow")
-        if now != prev and tries["n"] < 10:
+        if now != prev and tries["n"] < 40:
             tries["n"] += 1
-            if tries["n"] == 4:
+            if tries["n"] == 12:
                 sh("xdotool", "windowfocus", prev)
-            return True            # belum pindah fokus; coba lagi
+            return True            # belum pindah fokus; coba lagi (tiap 25 ms)
         if now != prev:
             log(f"paste skipped: active={now} prev={prev}")
-            GLib.timeout_add(100, paste_done)
+            GLib.timeout_add(50, paste_done)
             return False
         subprocess.run(["xdotool", "key", "--clearmodifiers", "ctrl+v"])
         log("pasted")
-        GLib.timeout_add(250, paste_done)
+        GLib.timeout_add(70, paste_done)
         return False
 
-    GLib.timeout_add(120, do_paste)
+    GLib.timeout_add(25, do_paste)
 
 
 def on_changed(e):
@@ -180,8 +183,18 @@ win.connect("destroy", quit_now)
 GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, lambda *_: (quit_now(), False)[1])
 win.show_all()
 win.present()
-GLib.timeout_add(120, lambda: (sh("xdotool", "windowactivate", str(win.get_window().get_xid())), False)[1])
-GLib.timeout_add(350, open_chooser)
+def open_when_active(n=[0]):
+    """Buka popover begitu jendela pemilih benar-benar punya fokus (tanpa jeda tetap)."""
+    if win.is_active() or n[0] > 30:
+        n[0] = 0
+        open_chooser()
+        return False
+    n[0] += 1
+    GLib.timeout_add(20, open_when_active)
+    return False
+
+
+GLib.timeout_add(60, lambda: (sh("xdotool", "windowactivate", "--sync", str(win.get_window().get_xid())), open_when_active(), False)[2])
 GLib.timeout_add(100, watch_chooser)
 if os.environ.get("EMOJI_AUTOTEST"):
     GLib.timeout_add(1500, lambda: (entry.set_text(os.environ.get("E1","😀")), False)[1])
