@@ -338,16 +338,59 @@ def tab(shift=False):
         keys.send(("Tab", True), ("Tab", False))
 
 
-def toggle_desktop():
+def _xprop(*args):
     try:
-        out = subprocess.run(
-            ["xprop", "-root", "_NET_SHOWING_DESKTOP"],
-            capture_output=True, text=True, timeout=2,
-        ).stdout
-        showing = out.strip().endswith("1")
+        return subprocess.run(["xprop", *args], capture_output=True, text=True,
+                              timeout=2).stdout
     except Exception:  # noqa: BLE001
-        showing = False
-    run("wmctrl", "-k", "off" if showing else "on")
+        return ""
+
+
+def _current_workspace():
+    out = _xprop("-root", "_NET_CURRENT_DESKTOP")
+    m = re.search(r"=\s*(\d+)", out)
+    return int(m.group(1)) if m else 0
+
+
+def _windows_here(ws):
+    """Jendela biasa di workspace ws (urutan bawah -> atas), tanpa yang sticky."""
+    out = _xprop("-root", "_NET_CLIENT_LIST_STACKING")
+    ids = re.findall(r"0x[0-9a-fA-F]+", out)
+    res = []
+    for wid in ids:
+        info = _xprop("-id", wid, "_NET_WM_DESKTOP", "_NET_WM_STATE",
+                      "_NET_WM_WINDOW_TYPE")
+        m = re.search(r"_NET_WM_DESKTOP\(CARDINAL\)\s*=\s*(\d+)", info)
+        if not m or int(m.group(1)) != ws:
+            continue
+        if re.search(r"_NET_WM_WINDOW_TYPE_(DOCK|DESKTOP|SPLASH|MENU)", info):
+            continue
+        if "_NET_WM_STATE_SKIP_TASKBAR" in info:
+            continue
+        res.append((wid, "_NET_WM_STATE_HIDDEN" in info))
+    return res
+
+
+minimized_by_ws = {}   # workspace -> [window id] yang kita minimize
+
+
+def toggle_desktop():
+    """Minimize semua jendela di workspace INI saja; panggil lagi = pulihkan."""
+    ws = _current_workspace()
+    here = _windows_here(ws)
+    present = {w: hidden for w, hidden in here}
+    mine = [w for w in minimized_by_ws.get(ws, []) if present.get(w)]
+    if mine:
+        minimized_by_ws.pop(ws, None)
+        for wid in mine:                 # bawah -> atas, yang teratas fokus terakhir
+            run("wmctrl", "-i", "-a", wid)
+        return
+    todo = [w for w, hidden in here if not hidden]
+    if not todo:
+        return
+    minimized_by_ws[ws] = todo
+    for wid in todo:
+        run("xdotool", "windowminimize", wid)
 
 
 def switch_workspace(next_ws):
