@@ -27,6 +27,20 @@ def sh(*cmd):
     return subprocess.run(cmd, capture_output=True, text=True).stdout.strip()
 
 
+LOGF = os.path.expanduser("~/.cache/emoji-picker.log")
+
+
+def log(msg):
+    try:
+        os.makedirs(os.path.dirname(LOGF), exist_ok=True)
+        if os.path.exists(LOGF) and os.path.getsize(LOGF) > 50000:
+            os.remove(LOGF)
+        with open(LOGF, "a") as f:
+            f.write(msg + "\n")
+    except OSError:
+        pass
+
+
 # Satu instance saja: panggilan kedua menutup yang pertama (toggle).
 lockf = open(LOCK, "a+")
 try:
@@ -44,6 +58,7 @@ lockf.write(str(os.getpid()))
 lockf.flush()
 
 prev = sh("xdotool", "getactivewindow")
+log(f"start prev={prev} name={sh('xdotool', 'getwindowname', prev) if prev else ''}")
 loc = dict(p.split("=") for p in sh("xdotool", "getmouselocation", "--shell").split())
 mx, my = int(loc["X"]), int(loc["Y"])
 
@@ -101,6 +116,7 @@ def paste_done():
 
 def pick(text):
     st["busy"] = True
+    log(f"pick {text!r}")
     p = subprocess.Popen(["xclip", "-selection", "clipboard"], stdin=subprocess.PIPE)
     p.stdin.write(text.encode())
     p.stdin.close()
@@ -108,15 +124,29 @@ def pick(text):
         print("PICKED", text, "prev", prev, flush=True)
         GLib.timeout_add(100, lambda: (st.update(busy=False), False)[1])
         return
-    if prev:
-        sh("xdotool", "windowactivate", "--sync", prev)
+    if not prev:
+        st["busy"] = False
+        return
+    sh("xdotool", "windowactivate", "--sync", prev)
+    tries = {"n": 0}
 
-        def do_paste():
-            subprocess.run(["xdotool", "key", "--clearmodifiers", "ctrl+v"])
-            GLib.timeout_add(180, paste_done)
+    def do_paste():
+        now = sh("xdotool", "getactivewindow")
+        if now != prev and tries["n"] < 10:
+            tries["n"] += 1
+            if tries["n"] == 4:
+                sh("xdotool", "windowfocus", prev)
+            return True            # belum pindah fokus; coba lagi
+        if now != prev:
+            log(f"paste skipped: active={now} prev={prev}")
+            GLib.timeout_add(100, paste_done)
             return False
+        subprocess.run(["xdotool", "key", "--clearmodifiers", "ctrl+v"])
+        log("pasted")
+        GLib.timeout_add(250, paste_done)
+        return False
 
-        GLib.timeout_add(150, do_paste)
+    GLib.timeout_add(120, do_paste)
 
 
 def on_changed(e):
@@ -154,7 +184,7 @@ GLib.timeout_add(120, lambda: (sh("xdotool", "windowactivate", str(win.get_windo
 GLib.timeout_add(350, open_chooser)
 GLib.timeout_add(100, watch_chooser)
 if os.environ.get("EMOJI_AUTOTEST"):
-    GLib.timeout_add(1500, lambda: (entry.set_text("😀"), False)[1])
-    GLib.timeout_add(2500, lambda: (entry.set_text("🎉"), False)[1])
+    GLib.timeout_add(1500, lambda: (entry.set_text(os.environ.get("E1","😀")), False)[1])
+    GLib.timeout_add(2500, lambda: (entry.set_text(os.environ.get("E2","🎉")), False)[1])
 GLib.timeout_add_seconds(1800, quit_now)  # pengaman
 Gtk.main()
