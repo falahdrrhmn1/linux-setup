@@ -29,7 +29,9 @@ SETTLE = 0.06          # a swipe must exist this long before it may act (s)
 FIVE_HOLD = 0.5        # ignore 3/4-finger events this long after 5 fingers (s)
 H_STEP_PX = 70         # horizontal movement per extra app step in the switcher
 COOLDOWN = 0.25        # ignore a new gesture right after a one-shot action
-COMMIT_DELAY = 0.6     # switcher opened by swipe-up stays open this long
+COMMIT_DELAY = 0.6     # (dipakai bila PIN_SWITCHER = False)
+PIN_SWITCHER = True    # swipe-up: switcher tetap terbuka sampai Esc/Enter/klik
+PIN_TIMEOUT = 300      # pengaman: tutup sendiri kalau dibiarkan selama ini (s)
 H_COMMIT_DELAY = 0.12  # switcher opened by a sideways swipe commits this fast
 SWIPE_LEFT_IS_NEXT = True   # sideways app switch: swipe left = next app
 THREE_LEFT_IS_NEXT = False  # 3 jari kiri/kanan: True = geser kiri = app berikutnya
@@ -63,6 +65,7 @@ LINE_RE = re.compile(
 )
 
 alt_held = False
+pinned = False         # switcher dibiarkan terbuka (mode swipe-up)
 commit_timer = None
 last_action = 0.0
 switcher_sign = 1      # +1: moving right = next entry, -1: moving left = next
@@ -261,8 +264,9 @@ def alt_down():
 
 
 def alt_up():
-    global alt_held
+    global alt_held, pinned
     with state_lock:
+        pinned = False
         if not alt_held:
             return
         alt_held = False
@@ -287,7 +291,33 @@ def _commit_now():
     global commit_timer
     with state_lock:
         commit_timer = None
+    unpin_flag()
     alt_up()
+
+
+def unpin_flag():
+    global pinned
+    with state_lock:
+        pinned = False
+
+
+def unpin(cancel=False, delay=0.05):
+    """Tutup switcher yang dipin. cancel=True: batalkan (Esc), bukan pilih."""
+    global pinned
+    with state_lock:
+        if not pinned:
+            return
+        pinned = False
+    cancel_commit()
+
+    def _do():
+        if cancel:
+            keys.send(("Escape", True), ("Escape", False))
+        alt_up()
+
+    t = threading.Timer(delay, _do)
+    t.daemon = True
+    t.start()
 
 
 def schedule_commit(delay=COMMIT_DELAY):
@@ -627,10 +657,39 @@ def handle_pinch(line):
         pinch["last"] /= 1 + PINCH_STEP
 
 
+KEY_RE = re.compile(r"KEYBOARD_KEY.*?\b(KEY_\w+)\s+\(\d+\)\s+(pressed|released)")
+BTN_RE = re.compile(r"POINTER_BUTTON.*?\b(BTN_\w+)\s+\(\d+\)\s+pressed")
+
+
+def handle_pin_event(line):
+    """Switcher yang dipin: Esc/Enter/Space/klik menutupnya. True bila dipakai."""
+    global alt_held
+    m = KEY_RE.search(line)
+    if m:
+        key, act = m.groups()
+        if act == "pressed" and key == "KEY_ESC":
+            unpin(cancel=False)      # xfwm4 sendiri membatalkan lewat Esc fisik
+        elif act == "pressed" and key in ("KEY_ENTER", "KEY_KPENTER", "KEY_SPACE"):
+            unpin()
+        elif key in ("KEY_LEFTALT", "KEY_RIGHTALT"):
+            # Alt fisik ditekan/dilepas: X sudah menutup switcher sendiri
+            unpin_flag()
+            with state_lock:
+                alt_held = False
+            cancel_commit()
+        return False
+    m = BTN_RE.search(line)
+    if m and swipe is None:
+        unpin(cancel=True)           # klik: batalkan switcher, jendela yang diklik tetap
+    return False
+
+
 def handle_line(line, now=None):
     """Process one `libinput debug-events` line."""
-    global swipe
+    global swipe, pinned
     now = time.monotonic() if now is None else now
+    if pinned and handle_pin_event(line):
+        return
     if PINCH_ZOOM and "GESTURE_PINCH" in line:
         handle_pinch(line)
         return
@@ -660,7 +719,12 @@ def handle_line(line, now=None):
             if swipe.action == "switcher_h":
                 schedule_commit(H_COMMIT_DELAY)
             elif swipe.action in ("switcher", "pending_switcher"):
-                schedule_commit(COMMIT_DELAY)
+                if PIN_SWITCHER:
+                    with state_lock:
+                        pinned = True
+                    schedule_commit(PIN_TIMEOUT)
+                else:
+                    schedule_commit(COMMIT_DELAY)
             elif swipe.action != "ignored":
                 swipe.end()
         swipe = None
@@ -674,7 +738,7 @@ def main():
     tracker.start()
 
     proc = subprocess.Popen(
-        ["libinput", "debug-events"],
+        ["libinput", "debug-events", "--show-keycodes"],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         text=True,
