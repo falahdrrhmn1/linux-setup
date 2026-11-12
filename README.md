@@ -22,7 +22,8 @@ Diuji di Lenovo IdeaPad 82HS, Debian 13 (trixie), XFCE 4.20, touchpad multitouch
 | Pindah workspace | 4 jari ke kiri = berikutnya, ke kanan = sebelumnya |
 | Zoom (pinch) | 2 jari melebar/merapat. Di Firefox = zoom visual (level zoom tidak berubah); di aplikasi lain = `Ctrl`+scroll |
 | Screenshot | `Ctrl`+`Shift`+`S` atau `PrtSc`: drag area, lepas, langsung masuk clipboard (tanpa tombol OK) |
-| Riwayat clipboard | `Super`+`V` (teks dan gambar) |
+| Riwayat clipboard | `Super`+`V`: muncul di dekat mouse (teks dan gambar) |
+| Emoji | `Super`+`;` atau `Super`+`.`: pilih emoji, otomatis ditempel (`Ctrl`+`V`; di terminal tidak jalan) |
 | Back / Forward browser | Flick 2 jari cepat ke kanan = Back, ke kiri = Forward (hanya di jendela browser). Dimatikan selama halaman sedang di-zoom, supaya geser/panning tidak salah terbaca |
 | Cari aplikasi | Tap tombol **Super/Windows**, ketik nama, `Enter` |
 | Tombol volume | `F2`/`F3`/`Mute` langsung mengatur volume (Fn lock dimatikan) |

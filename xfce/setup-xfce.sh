@@ -110,8 +110,22 @@ echo "-- app switcher: jendela yang diminimize ikut tampil"
 xfconf-query -c xfwm4 -p /general/cycle_minimized -n -t bool -s true 2>/dev/null \
     || xfconf-query -c xfwm4 -p /general/cycle_minimized -s true
 
-echo "-- clipboard: Super+V membuka riwayat clipboard (teks dan gambar)"
+echo "-- clipboard: Super+V membuka riwayat clipboard di dekat mouse (teks dan gambar)"
+mkdir -p "$HOME/.local/bin"
+install -m 755 "$DIR/clipboard-popup.sh" "$HOME/.local/bin/clipboard-popup"
 xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>v" \
-    -n -t string -s "xfce4-popup-clipman" 2>/dev/null \
+    -n -t string -s "$HOME/.local/bin/clipboard-popup" 2>/dev/null \
     || xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>v" \
-        -s "xfce4-popup-clipman"
+        -s "$HOME/.local/bin/clipboard-popup"
+
+echo "-- emoji: Super+; atau Super+. membuka pemilih emoji di dekat mouse"
+install -m 755 "$DIR/emoji-picker.py" "$HOME/.local/bin/emoji-picker"
+# hotkey emoji bawaan IBus dimatikan supaya tidak berebut dengan pemilih ini
+command -v gsettings >/dev/null 2>&1 && \
+    gsettings set org.freedesktop.ibus.panel.emoji hotkey "[]" 2>/dev/null || true
+for key in '<Super>semicolon' '<Super>period'; do
+    xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$key" \
+        -n -t string -s "$HOME/.local/bin/emoji-picker" 2>/dev/null \
+    || xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/$key" \
+        -s "$HOME/.local/bin/emoji-picker"
+done
