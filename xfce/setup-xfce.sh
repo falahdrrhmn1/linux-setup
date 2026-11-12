@@ -105,3 +105,7 @@ if command -v xfce4-screenshooter >/dev/null 2>&1 && command -v xfconf-query >/d
             -s "xfce4-screenshooter -r -c"
     done
 fi
+
+echo "-- app switcher: jendela yang diminimize ikut tampil"
+xfconf-query -c xfwm4 -p /general/cycle_minimized -n -t bool -s true 2>/dev/null \
+    || xfconf-query -c xfwm4 -p /general/cycle_minimized -s true
