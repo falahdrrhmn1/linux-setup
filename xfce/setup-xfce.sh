@@ -109,3 +109,9 @@ fi
 echo "-- app switcher: jendela yang diminimize ikut tampil"
 xfconf-query -c xfwm4 -p /general/cycle_minimized -n -t bool -s true 2>/dev/null \
     || xfconf-query -c xfwm4 -p /general/cycle_minimized -s true
+
+echo "-- clipboard: Super+V membuka riwayat clipboard (teks dan gambar)"
+xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>v" \
+    -n -t string -s "xfce4-popup-clipman" 2>/dev/null \
+    || xfconf-query -c xfce4-keyboard-shortcuts -p "/commands/custom/<Super>v" \
+        -s "xfce4-popup-clipman"
