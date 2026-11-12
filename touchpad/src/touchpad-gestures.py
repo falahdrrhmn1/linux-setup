@@ -32,6 +32,7 @@ COOLDOWN = 0.25        # ignore a new gesture right after a one-shot action
 COMMIT_DELAY = 0.6     # switcher opened by swipe-up stays open this long
 H_COMMIT_DELAY = 0.12  # switcher opened by a sideways swipe commits this fast
 SWIPE_LEFT_IS_NEXT = True   # sideways app switch: swipe left = next app
+THREE_LEFT_IS_NEXT = False  # 3 jari kiri/kanan: True = geser kiri = app berikutnya
 
 # Pinch to zoom (sent as Ctrl+scroll, like the Windows precision touchpad).
 PINCH_ZOOM = True
@@ -561,8 +562,8 @@ class Swipe:
             else:
                 self.action = "switcher_h"
                 right = self.dx > 0
-                switcher_sign = -1 if SWIPE_LEFT_IS_NEXT else 1
-                next_dir = (not right) if SWIPE_LEFT_IS_NEXT else right
+                switcher_sign = -1 if THREE_LEFT_IS_NEXT else 1
+                next_dir = (not right) if THREE_LEFT_IS_NEXT else right
                 log(f"3-finger swipe {'right' if right else 'left'} -> "
                     f"{'next' if next_dir else 'previous'} app")
                 alt_down()
