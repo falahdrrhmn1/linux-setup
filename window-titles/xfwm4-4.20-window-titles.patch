@@ -1,0 +1,117 @@
+--- a/src/tabwin.c
++++ b/src/tabwin.c
+@@ -265,6 +265,14 @@
+             return;
+         }
+ 
++        /* In grid mode the title is shown under every thumbnail, keep it
++         * and only refresh the status line at the bottom */
++        if (c->screen_info->params->cycle_tabwin_mode == STANDARD_ICON_GRID)
++        {
++            gtk_label_set_text (GTK_LABEL (tabwin_widget->label), c->name ? c->name : "");
++            return;
++        }
++
+         classname = g_strdup(c->class.res_class);
+         tabwinSetLabel (tabwin_widget, l, classname, c->name, c->win_workspace);
+         g_free (classname);
+@@ -295,11 +303,14 @@
+             children = gtk_container_get_children (GTK_CONTAINER (buttonbox));
+             buttonlabel = GTK_WIDGET (g_list_nth_data (children, 1) );
+             g_list_free (children);
+-            gtk_label_set_text (GTK_LABEL (buttonlabel), "");
++            c = g_object_get_data (G_OBJECT (window_button), "client-ptr-val");
++            if ((c == NULL) || (c->screen_info->params->cycle_tabwin_mode != STANDARD_ICON_GRID))
++            {
++                gtk_label_set_text (GTK_LABEL (buttonlabel), "");
++            }
+ 
+             if (gtk_widget_is_focus (window_button))
+             {
+-                c = g_object_get_data (G_OBJECT (window_button), "client-ptr-val");
+                 selected = g_list_find (*tabwin->client_list, c);
+ 
+                 if (selected)
+@@ -398,7 +409,8 @@
+     if (c != NULL)
+     {
+         /* we don't update the labels on mouse over for this mode */
+-        if (c->screen_info->params->cycle_tabwin_mode == OVERFLOW_COLUMN_GRID)
++        if (c->screen_info->params->cycle_tabwin_mode == OVERFLOW_COLUMN_GRID
++            || c->screen_info->params->cycle_tabwin_mode == STANDARD_ICON_GRID)
+         {
+             return FALSE;
+         }
+@@ -516,7 +528,7 @@
+         {
+             gtk_widget_set_size_request (GTK_WIDGET (window_button), size_request, size_request);
+             buttonbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+-            buttonlabel = gtk_label_new ("");
++            buttonlabel = gtk_label_new (c->name ? c->name : "");
+             gtk_label_set_xalign (GTK_LABEL (buttonlabel), 0.5);
+             gtk_label_set_yalign (GTK_LABEL (buttonlabel), 1.0);
+ 
+@@ -877,14 +889,6 @@
+ 
+             if (c != NULL)
+             {
+-                /* don't clear label if mouse is inside the previously
+-                 * selected button */
+-                if (c->screen_info->params->cycle_tabwin_mode == STANDARD_ICON_GRID
+-                    && window_button != tabwin_widget->hovered)
+-                {
+-                    gtk_label_set_text (GTK_LABEL (buttonlabel), "");
+-                }
+-
+                 if (c == tabwin->selected->data)
+                 {
+                     gtk_widget_grab_focus (window_button);
+--- a/src/display.h
++++ b/src/display.h
+@@ -215,6 +215,7 @@
+     NET_WM_ICON_NAME,
+     NET_WM_MOVERESIZE,
+     NET_WM_NAME,
++    NET_WM_VISIBLE_NAME,
+     NET_WM_OPAQUE_REGION,
+     NET_WM_PID,
+     NET_WM_PING,
+--- a/src/display.c
++++ b/src/display.c
+@@ -111,6 +111,7 @@
+         "_NET_WM_ICON_NAME",
+         "_NET_WM_MOVERESIZE",
+         "_NET_WM_NAME",
++        "_NET_WM_VISIBLE_NAME",
+         "_NET_WM_OPAQUE_REGION",
+         "_NET_WM_PID",
+         "_NET_WM_PING",
+--- a/src/hints.c
++++ b/src/hints.c
+@@ -949,6 +949,16 @@
+     *name = NULL;
+     g_return_val_if_fail (w != None, FALSE);
+ 
++    /* A user-defined name set via _NET_WM_VISIBLE_NAME takes precedence so
++     * that renaming a window survives applications updating their own title */
++    if (getUTF8StringData (display_info, w, NET_WM_VISIBLE_NAME, &str, &len))
++    {
++        *name = internal_utf8_strndup (str, MAX_STR_LENGTH);
++        xfce_utf8_remove_controls(*name, -1, NULL);
++        XFree (str);
++        return TRUE;
++    }
++
+     if (getUTF8StringData (display_info, w, NET_WM_NAME, &str, &len))
+     {
+         *name = internal_utf8_strndup (str, MAX_STR_LENGTH);
+--- a/src/events.c
++++ b/src/events.c
+@@ -1669,6 +1669,7 @@
+         }
+         else if ((ev->atom == XA_WM_NAME) ||
+                  (ev->atom == display_info->atoms[NET_WM_NAME]) ||
++                 (ev->atom == display_info->atoms[NET_WM_VISIBLE_NAME]) ||
+                  (ev->atom == display_info->atoms[WM_CLIENT_MACHINE]))
+         {
+             TRACE ("client \"%s\" (0x%lx) has received a XA_WM_NAME/NET_WM_NAME/WM_CLIENT_MACHINE notify", c->name, c->window);

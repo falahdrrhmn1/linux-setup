@@ -23,6 +23,7 @@ fi
 
 bash "$DIR/touchpad/uninstall.sh"
 bash "$DIR/firefox/uninstall.sh"
+bash "$DIR/window-titles/uninstall.sh"
 
 echo "== Selesai =="
 echo "Pengaturan XFCE (zoom, hotkey volume, xorg touchpad) dibiarkan."

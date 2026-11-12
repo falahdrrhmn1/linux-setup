@@ -28,6 +28,7 @@ Diuji di Lenovo IdeaPad 82HS, Debian 13 (trixie), XFCE 4.20, touchpad multitouch
 | Cari aplikasi | Tap tombol **Super/Windows**, ketik nama, `Enter` |
 | Tombol volume | `F2`/`F3`/`Mute` langsung mengatur volume (Fn lock dimatikan) |
 | Copy/paste terminal | **Shift+drag** untuk menyeleksi, `Ctrl`+`Shift`+`C` copy, `Ctrl`+`Shift`+`V` paste |
+| Nama jendela | `Alt`+`F2`: ganti nama jendela aktif (kosongkan = nama asli). Nama tampil di bawah thumbnail `Alt`+`Tab` dan bertahan walau aplikasi mengganti judulnya |
 
 ## Copy/paste di terminal
 
@@ -74,6 +75,9 @@ Setelah selesai, semua fitur langsung aktif dan otomatis jalan setiap login/rest
 - **Fn lock**: service `fnlock` (enabled) supaya `F2`/`F3` tetap tombol volume.
 - **XFCE**: zoom desktop dimatikan, hotkey volume, natural scrolling, kecepatan scroll
   touchpad (`ScrollPixelDistance`), dan `vblank_mode=glx` di xfwm4 (scroll lebih responsif).
+- **Nama jendela**: xfwm4 hasil patch di `/usr/local/bin/xfwm4` (paket apt tidak
+  diubah) + `~/.local/bin/rename-window` + shortcut `Alt+F2` + fungsi `nama` di
+  `~/.bashrc`. Nama disimpan di `_NET_WM_VISIBLE_NAME` supaya tidak ditimpa aplikasi.
 
 ## Pengaturan
 
@@ -120,6 +124,7 @@ Setelan XFCE (zoom, hotkey volume, xorg touchpad) sengaja dibiarkan.
 | Pinch Firefox tidak zoom | Cek proses punya variabelnya: `tr '\0' '\n' < /proc/$(pgrep -x firefox-esr \| head -1)/environ \| grep XINPUT2`. Tutup **semua** jendela Firefox lalu buka lagi. Jalankan `./firefox/setup-firefox.sh` ulang bila perlu |
 | Flick Back/Forward tidak jalan | `journalctl -u touchpad-gestures -f`, lalu flick: log menjelaskan alasannya (`too-slow`, `not-straight`, `page is zoomed`). Pastikan jendela aktif browser |
 | TouchTamer diam setelah error | Baca `~/.cache/touchtamer/touchtamer.err` |
+| Alt+Tab tanpa judul / nama hilang | Pastikan yang jalan xfwm4 patch: `command -v xfwm4` harus `/usr/local/bin/xfwm4`. Pasang ulang: `./window-titles/setup-window-titles.sh` |
 
 ## Struktur repo
 
@@ -145,6 +150,11 @@ linux-setup/
 ├── firefox/                   # pinch-to-zoom Firefox di X11 (XInput2 + pref APZ)
 │   ├── setup-firefox.sh
 │   └── uninstall.sh
+├── window-titles/             # nama jendela di alt+tab + rename Alt+F2
+│   ├── setup-window-titles.sh
+│   ├── uninstall.sh
+│   ├── rename-window
+│   └── xfwm4-4.20-window-titles.patch
 └── system/
     └── fnlock.service
 ```

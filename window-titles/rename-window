@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Ganti nama (judul) jendela yang sedang aktif. Terhubung ke tombol Alt+F2.
+# Nama disimpan di properti _NET_WM_VISIBLE_NAME supaya tidak ditimpa
+# oleh aplikasi (mis. Firefox/terminal yang mengganti judul sendiri).
+# Kosongkan isian untuk kembali ke nama asli aplikasi.
+wid=$(xdotool getactivewindow 2>/dev/null) || exit 1
+[ -n "$wid" ] || exit 1
+
+cur=$(xprop -id "$wid" _NET_WM_VISIBLE_NAME 2>/dev/null | sed -n 's/.*= "\(.*\)"$/\1/p')
+if [ -z "$cur" ]; then
+    cur=$(xdotool getwindowname "$wid" 2>/dev/null)
+fi
+
+new=$(zenity --entry \
+    --title="Ganti nama jendela" \
+    --text="Nama baru (kosongkan = kembali ke nama asli):" \
+    --entry-text="$cur") || exit 0
+
+if [ -z "$new" ]; then
+    xprop -id "$wid" -remove _NET_WM_VISIBLE_NAME
+else
+    xprop -id "$wid" -f _NET_WM_VISIBLE_NAME 8u -set _NET_WM_VISIBLE_NAME "$new"
+fi

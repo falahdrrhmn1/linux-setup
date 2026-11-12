@@ -13,8 +13,10 @@ bash "$DIR/super-search/install.sh"
 echo
 bash "$DIR/xfce/setup-xfce.sh"
 echo
+bash "$DIR/window-titles/setup-window-titles.sh"
+echo
 bash "$DIR/firefox/setup-firefox.sh"
 echo
 echo "== Selesai =="
-echo "TouchTamer, gestur touchpad, Super search, setelan XFCE, dan pinch-zoom Firefox sudah aktif."
+echo "TouchTamer, gestur touchpad, Super search, setelan XFCE, nama jendela, dan pinch-zoom Firefox sudah aktif."
 echo "Semua akan otomatis jalan setiap login/restart."
