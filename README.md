@@ -17,7 +17,7 @@ Diuji di Lenovo IdeaPad 82HS, Debian 13 (trixie), XFCE 4.20, touchpad multitouch
 | Ukuran jendela | `Alt`+`Atas` / `Alt`+`Bawah` |
 | Lebar jendela | `Alt`+`Kanan` / `Alt`+`Kiri` |
 | Tampilkan desktop | 3 jari ke bawah: minimize semua jendela di workspace ini saja (workspace lain tidak ikut); ulangi = pulihkan |
-| App switcher | 3 jari ke atas: switcher tetap terbuka; geser 3 jari kanan/kiri = pilih, `Enter`/`Space` = buka, `Esc` atau klik = tutup (otomatis tutup setelah 5 menit) | Jendela yang diminimize ikut tampil di daftar.
+| App switcher | 3 jari ke atas: switcher tetap terbuka; geser 3 jari kanan/kiri = pilih, `Enter`/`Space` = buka, `Esc` atau klik = tutup (otomatis tutup setelah 5 menit). Jendela yang diminimize ikut tampil di daftar |
 | Pindah aplikasi | 3 jari ke kiri = berikutnya, ke kanan = sebelumnya (terus geser = lanjut ke aplikasi berikutnya) |
 | Pindah workspace | 4 jari ke kiri = berikutnya, ke kanan = sebelumnya |
 | Zoom (pinch) | 2 jari melebar/merapat. Di Firefox = zoom visual (level zoom tidak berubah); di aplikasi lain = `Ctrl`+scroll |
