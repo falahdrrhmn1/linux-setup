@@ -623,6 +623,15 @@ class WindowMover:
         self.want_cx += dx
         self.want_cy += dy
 
+        # The pointer cannot leave the screen, so a Compiz grab (which follows
+        # the pointer) would stop at the edge. Hand over to plain EWMH moves
+        # there, so the window can still go as far as before Compiz.
+        if self.wm_grab and not (
+            0 <= self.want_cx < self.screen_w and 0 <= self.want_cy < self.screen_h
+        ):
+            self.wm_grab = False
+            self._compiz_move("deactivate")
+
         if not self.wm_grab:
             self._move_resize(self.win, fx, fy)
 
