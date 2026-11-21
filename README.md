@@ -15,6 +15,7 @@ Diuji di Lenovo IdeaPad 82HS, Debian 13 (trixie), XFCE 4.20, touchpad multitouch
 | Volume | Tahan `Ctrl`+`Shift`, geser 2 jari di **sisi kanan** |
 | Pindah jendela | 5 jari, geser ke arah mana saja (dengan Compiz: jendela bergoyang jelly) |
 | Efek jendela (Compiz) | Jendela **jelly** saat digeser (5 jari atau bilah judul), animasi **Magic Lamp** saat minimize, tombol bulat macOS (WhiteSur). Video/game layar penuh tidak diproses efek |
+| Dock bawah (Plank) | Ikon **membesar saat di-hover** seperti macOS (zoom 160%), sembunyi otomatis bila tertutup jendela. Atur: `Ctrl`+klik kanan dock → Preferences |
 | Ukuran jendela | `Alt`+`Atas` / `Alt`+`Bawah` |
 | Lebar jendela | `Alt`+`Kanan` / `Alt`+`Kiri` |
 | Tampilkan desktop | 3 jari ke bawah: minimize semua jendela di workspace ini saja (workspace lain tidak ikut); ulangi = pulihkan |
@@ -151,6 +152,10 @@ linux-setup/
 ├── firefox/                   # pinch-to-zoom Firefox di X11 (XInput2 + pref APZ)
 │   ├── setup-firefox.sh
 │   └── uninstall.sh
+├── dock/                      # dock Plank ala macOS (zoom saat hover)
+│   ├── setup-dock.sh
+│   ├── uninstall.sh
+│   └── launchers/
 ├── compiz/                    # jendela jelly + magic lamp (pengganti xfwm4)
 │   ├── setup-compiz.sh
 │   ├── uninstall.sh

@@ -19,6 +19,8 @@ bash "$DIR/firefox/setup-firefox.sh"
 echo
 bash "$DIR/compiz/setup-compiz.sh"
 echo
+bash "$DIR/dock/setup-dock.sh"
+echo
 echo "== Selesai =="
-echo "TouchTamer, gestur touchpad, Super search, setelan XFCE, nama jendela, pinch-zoom Firefox, dan Compiz (jendela jelly) sudah aktif."
+echo "TouchTamer, gestur touchpad, Super search, setelan XFCE, nama jendela, pinch-zoom Firefox, Compiz (jendela jelly), dan dock Plank sudah aktif."
 echo "Semua akan otomatis jalan setiap login/restart."

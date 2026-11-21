@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Nemo
+Comment=File manager (column view, transparan, preview)
+Exec=@HOME@/.local/bin/nemo-kolom @HOME@
+Icon=system-file-manager
+Terminal=false
+Categories=Utility;FileManager;
+X-XFCE-Source=file://@HOME@/Desktop/Nemo.desktop
