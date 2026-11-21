@@ -49,6 +49,9 @@ esac
 if ! python3 -c 'import evdev, Xlib, gi' >/dev/null 2>&1; then
     packages+=("python3-evdev" "python3-xlib" "python3-gi")
 fi
+if ! python3 -c 'import jeepney' >/dev/null 2>&1; then
+    packages+=("python3-jeepney")  # D-Bus ringan untuk jendela jelly di Compiz
+fi
 
 if [ ${#packages[@]} -gt 0 ]; then
     echo "-- memasang paket: ${packages[*]}"
