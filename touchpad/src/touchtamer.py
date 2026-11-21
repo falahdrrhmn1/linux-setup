@@ -428,6 +428,27 @@ class WindowMover:
         self.atom_state = dpy.intern_atom("_NET_WM_STATE")
         self.atom_max_h = dpy.intern_atom("_NET_WM_STATE_MAXIMIZED_HORZ")
         self.atom_max_v = dpy.intern_atom("_NET_WM_STATE_MAXIMIZED_VERT")
+        # True while Compiz itself holds the window (gives wobbly/jelly effects).
+        self.wm_grab = False
+
+    def _compiz_move(self, method, *args):
+        """Ask Compiz's move plugin (via its D-Bus plugin) to start/stop a move
+        grab. Returns False when Compiz is not running, so the caller falls back
+        to plain EWMH moves (xfwm4 and other window managers)."""
+        cmd = [
+            "dbus-send", "--session", "--print-reply", "--reply-timeout=400",
+            "--dest=org.freedesktop.compiz",
+            "/org/freedesktop/compiz/move/allscreens/initiate_button",
+            "org.freedesktop.compiz." + method,
+            "string:root", "int32:%d" % self.root.id,
+        ] + list(args)
+        try:
+            return subprocess.run(
+                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=1,
+            ).returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            return False
 
     def _pointer(self):
         p = self.root.query_pointer()
@@ -565,6 +586,15 @@ class WindowMover:
                 )
             except (OSError, subprocess.SubprocessError):
                 pass
+
+            # Let Compiz hold the window so it wobbles like a mouse drag.
+            # The pointer is warped along in move(), Compiz follows it.
+            self.wm_grab = self._compiz_move(
+                "activate",
+                "string:window", "int32:%d" % wid,
+                "string:x", "int32:%d" % cx,
+                "string:y", "int32:%d" % cy,
+            )
             return True
         except Exception:
             self.win = None
@@ -593,17 +623,25 @@ class WindowMover:
         self.want_cx += dx
         self.want_cy += dy
 
-        self._move_resize(self.win, fx, fy)
+        if not self.wm_grab:
+            self._move_resize(self.win, fx, fy)
 
         cx = max(0, min(self.screen_w - 1, int(round(self.want_cx))))
         cy = max(0, min(self.screen_h - 1, int(round(self.want_cy))))
         try:
-            self.root.warp_pointer(cx, cy)
+            if self.wm_grab:
+                # Compiz only follows real (XTest) motion while it holds the window.
+                xtest.fake_input(self.dpy, X.MotionNotify, x=cx, y=cy)
+            else:
+                self.root.warp_pointer(cx, cy)
             self.dpy.flush()
         except Exception:
             pass
 
     def end(self):
+        if self.wm_grab:
+            self.wm_grab = False
+            self._compiz_move("deactivate")
         self.win = None
         self.wid = None
 
