@@ -13,7 +13,8 @@ Diuji di Lenovo IdeaPad 82HS, Debian 13 (trixie), XFCE 4.20, touchpad multitouch
 |---|---|
 | Brightness | Tahan `Ctrl`+`Shift`, geser 2 jari di **sisi kiri** (atas naik, bawah turun) |
 | Volume | Tahan `Ctrl`+`Shift`, geser 2 jari di **sisi kanan** |
-| Pindah jendela | 5 jari, geser ke arah mana saja |
+| Pindah jendela | 5 jari, geser ke arah mana saja (dengan Compiz: jendela bergoyang jelly) |
+| Efek jendela (Compiz) | Jendela **jelly** saat digeser (5 jari atau bilah judul), animasi **Magic Lamp** saat minimize, tombol bulat macOS (WhiteSur). Video/game layar penuh tidak diproses efek |
 | Ukuran jendela | `Alt`+`Atas` / `Alt`+`Bawah` |
 | Lebar jendela | `Alt`+`Kanan` / `Alt`+`Kiri` |
 | Tampilkan desktop | 3 jari ke bawah: minimize semua jendela di workspace ini saja (workspace lain tidak ikut); ulangi = pulihkan |
@@ -150,6 +151,11 @@ linux-setup/
 ├── firefox/                   # pinch-to-zoom Firefox di X11 (XInput2 + pref APZ)
 │   ├── setup-firefox.sh
 │   └── uninstall.sh
+├── compiz/                    # jendela jelly + magic lamp (pengganti xfwm4)
+│   ├── setup-compiz.sh
+│   ├── uninstall.sh
+│   ├── Default.ini
+│   └── bin/ (compiz-coba, balik-xfwm4)
 ├── window-titles/             # nama jendela di alt+tab + rename Alt+F2
 │   ├── setup-window-titles.sh
 │   ├── uninstall.sh

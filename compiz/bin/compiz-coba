@@ -1,0 +1,10 @@
+#!/bin/sh
+# Jalankan Compiz (wobbly + magic lamp) menggantikan xfwm4.
+# Kalau Compiz tidak terpasang: tidak melakukan apa-apa (xfwm4 tetap dipakai).
+# Kalau Compiz berhenti/crash: xfwm4 otomatis dipulihkan.
+command -v compiz >/dev/null 2>&1 || exit 0
+pgrep -x compiz >/dev/null 2>&1 && exit 0
+(
+  compiz --replace ccp > "$HOME/.cache/compiz-coba.log" 2>&1
+  xfwm4 --replace > /dev/null 2>&1 &
+) > /dev/null 2>&1 &

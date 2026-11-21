@@ -17,6 +17,8 @@ bash "$DIR/window-titles/setup-window-titles.sh"
 echo
 bash "$DIR/firefox/setup-firefox.sh"
 echo
+bash "$DIR/compiz/setup-compiz.sh"
+echo
 echo "== Selesai =="
-echo "TouchTamer, gestur touchpad, Super search, setelan XFCE, nama jendela, dan pinch-zoom Firefox sudah aktif."
+echo "TouchTamer, gestur touchpad, Super search, setelan XFCE, nama jendela, pinch-zoom Firefox, dan Compiz (jendela jelly) sudah aktif."
 echo "Semua akan otomatis jalan setiap login/restart."
